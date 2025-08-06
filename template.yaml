@@ -9,7 +9,7 @@ Parameters:
     AllowedValues: [dev, prod]
   NotificationEmail:
     Type: String
-    Default: your-email@example.com
+    Default: akappiah@gmail.com
 
 Globals:
   Function:

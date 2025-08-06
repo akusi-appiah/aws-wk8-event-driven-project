@@ -22,9 +22,6 @@ jobs:
       - uses: actions/setup-node@v3  # For Node.js runtime
         with:
           node-version: '20'
-
-      # - name: Install SAM CLI
-      #   run: pip install aws-sam-cli
         
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
