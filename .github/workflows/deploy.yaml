@@ -1,0 +1,53 @@
+# .github/workflows/deploy.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, prod]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3  # For Node.js runtime
+        with:
+          node-version: '20'
+
+      # - name: Install SAM CLI
+      #   run: pip install aws-sam-cli
+        
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::ACCOUNT_ID:role/GITHUB_OIDC_ROLE
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          
+      - name: SAM Build
+        run: sam build
+      
+      - name: SAM Deploy
+        run: |
+          sam deploy --stack-name s3-notifier-${{ matrix.env }} \
+            --parameter-overrides \
+              Environment=${{ matrix.env }} \
+              NotificationEmail=${{ secrets.NOTIFICATION_EMAIL }} \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --tags Environment=${{ matrix.env }}
+
+
