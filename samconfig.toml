@@ -3,6 +3,6 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "s3-notifier-${env}"  # Dynamic stack naming
-s3_bucket = "YOUR_SAM_ARTIFACT_BUCKET"  # Storage for deployment artifacts
+s3_bucket = "sam-sns-artifacts-bucket" # Storage for deployment artifacts
 region = "eu-west-1"  # Default AWS region
 confirm_changeset = false  # Auto-approve changes in CI/CD

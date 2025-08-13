@@ -18,6 +18,17 @@ Globals:
     MemorySize: 128
 
 Resources:
+
+# S3 Bucket for SAM Artifacts
+  SamArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub sam-artifacts-${Environment}-${AWS::AccountId}
+      # Optional: Add versioning or lifecycle policies for cleanup
+      VersioningConfiguration:
+        Status: Enabled
+
+
   # S3 Bucket with environment suffix
   UploadBucket:
     Type: AWS::S3::Bucket
@@ -37,6 +48,35 @@ Resources:
       Protocol: email
       Endpoint: !Ref NotificationEmail
       TopicArn: !Ref NotificationTopic
+  
+  # Lambda Execution Role
+  NotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref NotificationTopic
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:aws:s3:::${UploadBucket}/*
 
   # Lambda Function
   NotificationFunction:
@@ -45,12 +85,10 @@ Resources:
       FunctionName: !Sub s3-upload-notifier-${Environment}
       CodeUri: src/
       Handler: notify.handler
+      Role: !GetAtt NotificationFunctionRole.Arn
       Environment:
         Variables:
           SNS_TOPIC_ARN: !Ref NotificationTopic
-      Policies:
-        - SNSPublishMessagePolicy:
-            TopicName: !GetAtt NotificationTopic.TopicName
       Events:
         BucketEvent:
           Type: S3
@@ -63,3 +101,5 @@ Outputs:
     Value: !Ref UploadBucket
   SNSTopicArn:
     Value: !Ref NotificationTopic
+  SamArtifactsBucketName:
+    Value: !Ref SamArtifactsBucket

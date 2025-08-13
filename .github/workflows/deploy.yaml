@@ -26,7 +26,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::796973518232:oidc-provider/token.actions.githubusercontent.com
+          role-to-assume: arn:aws:iam::796973518232:role/github-actions-sam-exec-role
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set up SAM CLI
@@ -35,11 +35,12 @@ jobs:
           use-installer: true
           
       - name: SAM Build
-        run: sam build
+        run: sam build --template-file template.yaml
       
       - name: SAM Deploy
         run: |
           sam deploy --stack-name s3-notifier-${{ matrix.env }} \
+            --s3-bucket sam-sns-artifacts-bucket \
             --parameter-overrides \
               Environment=${{ matrix.env }} \
               NotificationEmail=${{ secrets.NOTIFICATION_EMAIL }} \
