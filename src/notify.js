@@ -1,5 +1,6 @@
-const AWS = require('aws-sdk');
-const sns = new AWS.SNS();
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+
+const snsClient = new SNSClient({ region: 'eu-west-1' });
 
 exports.handler = async (event) => {
     try {
@@ -17,7 +18,7 @@ exports.handler = async (event) => {
                 TopicArn: topicArn
             };
             
-            await sns.publish(params).promise();
+            await snsClient.send(new PublishCommand(params));
         }));
         
         return { statusCode: 200, body: 'Notifications sent' };
