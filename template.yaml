@@ -74,9 +74,6 @@ Resources:
               - Effect: Allow
                 Action: sns:Publish
                 Resource: !Ref NotificationTopic
-              - Effect: Allow
-                Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::${UploadBucket}/*
 
   # Lambda Function
   NotificationFunction:
